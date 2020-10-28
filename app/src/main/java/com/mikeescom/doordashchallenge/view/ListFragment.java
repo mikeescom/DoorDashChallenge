@@ -41,13 +41,11 @@ public class ListFragment extends Fragment {
 
         viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
         viewModel.init();
-        viewModel.getRestaurantsResponseLiveData().observe(getViewLifecycleOwner(), response -> {
+        viewModel.getRestaurantsResponseLiveData(37.422740,-122.139956).observe(getViewLifecycleOwner(), response -> {
             if (response != null) {
                 adapter.setResults(response);
             }
         });
-
-        performCall(37.422740,-122.139956);
 
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
@@ -55,9 +53,5 @@ public class ListFragment extends Fragment {
         recyclerView.setAdapter(adapter);
 
         return view;
-    }
-
-    public void performCall(double lat, double lng) {
-        viewModel.callRestaurants(lat, lng);
     }
 }

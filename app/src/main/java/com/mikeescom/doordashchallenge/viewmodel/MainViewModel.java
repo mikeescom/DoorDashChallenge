@@ -1,45 +1,38 @@
 package com.mikeescom.doordashchallenge.viewmodel;
 
 import android.app.Application;
+import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.paging.PagedList;
 
-import com.mikeescom.doordashchallenge.network.models.Restaurant;
-import com.mikeescom.doordashchallenge.network.models.RestaurantDetail;
+import com.mikeescom.doordashchallenge.data.models.Restaurant;
+import com.mikeescom.doordashchallenge.data.models.RestaurantDetail;
 import com.mikeescom.doordashchallenge.repository.Repository;
 
 public class MainViewModel extends AndroidViewModel {
+    private Context context;
     private Repository repository;
     private LiveData<Restaurant[]> restaurantsResponseLiveData;
     private LiveData<RestaurantDetail> restaurantDetailResponseLiveData;
 
-
     public MainViewModel(@NonNull Application application) {
         super(application);
+        this.context = application.getApplicationContext();
     }
 
     public void init() {
-        repository = new Repository();
-        restaurantsResponseLiveData = repository.getRestaurantsResponseLiveData();
-        restaurantDetailResponseLiveData = repository.getRestaurantDetailResponseLiveData();
+        repository = new Repository(context);
     }
 
-    public void callRestaurants(double lat, double lng) {
-        repository.callRestaurants(lat, lng);
-    }
-
-    public LiveData<Restaurant[]> getRestaurantsResponseLiveData() {
+    public LiveData<Restaurant[]> getRestaurantsResponseLiveData(double lat, double lng) {
+        restaurantsResponseLiveData = repository.getRestaurantsResponseLiveData(lat, lng);
         return restaurantsResponseLiveData;
     }
 
-    public void callRestaurantDetail(int id) {
-        repository.callRestaurantDetail(id);
-    }
-
-    public LiveData<RestaurantDetail> getRestaurantDetailResponseLiveData() {
+    public LiveData<RestaurantDetail> getRestaurantDetailResponseLiveData(int id) {
+        restaurantDetailResponseLiveData = repository.getRestaurantDetailResponseLiveData(id);
         return restaurantDetailResponseLiveData;
     }
 

@@ -1,7 +1,7 @@
-package com.mikeescom.doordashchallenge.network;
+package com.mikeescom.doordashchallenge.data.network;
 
-import com.mikeescom.doordashchallenge.network.models.Restaurant;
-import com.mikeescom.doordashchallenge.network.models.RestaurantDetail;
+import com.mikeescom.doordashchallenge.data.models.Restaurant;
+import com.mikeescom.doordashchallenge.data.models.RestaurantDetail;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

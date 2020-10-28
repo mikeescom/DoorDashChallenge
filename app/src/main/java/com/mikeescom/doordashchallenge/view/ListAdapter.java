@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.mikeescom.doordashchallenge.R;
-import com.mikeescom.doordashchallenge.network.models.Restaurant;
+import com.mikeescom.doordashchallenge.data.models.Restaurant;
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListAdapterHolder> {
     private Restaurant[] results;

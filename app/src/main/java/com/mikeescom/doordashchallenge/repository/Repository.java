@@ -1,12 +1,26 @@
 package com.mikeescom.doordashchallenge.repository;
 
+import android.content.Context;
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.room.Room;
 
-import com.mikeescom.doordashchallenge.network.models.Restaurant;
-import com.mikeescom.doordashchallenge.network.models.RestaurantDetail;
-import com.mikeescom.doordashchallenge.network.Service;
+import com.mikeescom.doordashchallenge.data.db.AppDatabase;
+import com.mikeescom.doordashchallenge.data.models.Restaurant;
+import com.mikeescom.doordashchallenge.data.models.RestaurantDetail;
+import com.mikeescom.doordashchallenge.data.network.Service;
 
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+
+import io.reactivex.MaybeObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.observers.DisposableCompletableObserver;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Call;
@@ -15,15 +29,20 @@ import retrofit2.Response;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class Repository {
+    private static final String TAG = Repository.class.getSimpleName();
     private static final String BASE_URL = "https://api.doordash.com/";
 
+    private AppDatabase db;
     private Service service;
     private MutableLiveData<Restaurant[]> restaurantsResponseMutableLiveData;
     private MutableLiveData<RestaurantDetail> restaurantDetailResponseMutableLiveData;
 
-    public Repository() {
+    public Repository(Context context) {
         restaurantsResponseMutableLiveData = new MutableLiveData<>();
         restaurantDetailResponseMutableLiveData = new MutableLiveData<>();
+
+        db = Room.databaseBuilder(context,
+                AppDatabase.class, "database-doordash").build();
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.level(HttpLoggingInterceptor.Level.BODY);
@@ -37,12 +56,13 @@ public class Repository {
                 .create(Service.class);
     }
 
-    public void callRestaurants(double lat, double lng) {
+    private void callRestaurants(double lat, double lng) {
         service.getRestaurants(lat, lng)
                 .enqueue(new Callback<Restaurant[]>() {
                     @Override
                     public void onResponse(Call<Restaurant[]> call, Response<Restaurant[]> response) {
                         if (response.body() != null) {
+                            insertRestaurants(response.body());
                             restaurantsResponseMutableLiveData.postValue(response.body());
                         }
                     }
@@ -54,16 +74,45 @@ public class Repository {
                 });
     }
 
-    public LiveData<Restaurant[]> getRestaurantsResponseLiveData() {
+    public LiveData<Restaurant[]> getRestaurantsResponseLiveData(double lat, double lng) {
+        db.restaurantDao().getAll().subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new MaybeObserver<Restaurant[]>() {
+                    @Override
+                    public void onSubscribe(@NonNull Disposable d) {
+                        Log.i(TAG, "Restaurants - onSubscribe");
+                    }
+
+                    @Override
+                    public void onSuccess(@NonNull Restaurant[] restaurants) {
+                        Log.i(TAG, "Restaurants - onNext");
+                        if (restaurants.length > 0) {
+                            restaurantsResponseMutableLiveData.postValue(restaurants);
+                        } else {
+                            callRestaurants(lat, lng);
+                        }
+                    }
+
+                    @Override
+                    public void onError(@NonNull Throwable e) {
+                        Log.i(TAG, "Restaurants - onError: " + e.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.i(TAG, "Restaurants - onComplete");
+                    }
+                });
         return restaurantsResponseMutableLiveData;
     }
 
-    public void callRestaurantDetail(int id) {
+    private void callRestaurantDetail(int id) {
         service.getRestaurantDetail(id)
                 .enqueue(new Callback<RestaurantDetail>() {
                     @Override
                     public void onResponse(Call<RestaurantDetail> call, Response<RestaurantDetail> response) {
                         if (response.body() != null) {
+                            insertRestaurantDetail(response.body());
                             restaurantDetailResponseMutableLiveData.postValue(response.body());
                         }
                     }
@@ -75,7 +124,93 @@ public class Repository {
                 });
     }
 
-    public LiveData<RestaurantDetail> getRestaurantDetailResponseLiveData() {
+    public LiveData<RestaurantDetail> getRestaurantDetailResponseLiveData(int id) {
+        db.restaurantDetailDao().getDetail(id).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<RestaurantDetail>() {
+                    @Override
+                    public void onSubscribe(Subscription s) {
+                        Log.i(TAG, "RestaurantDetail - onSubscribe");
+                    }
+
+                    @Override
+                    public void onNext(RestaurantDetail restaurantDetail) {
+                        Log.i(TAG, "RestaurantDetail - onNext");
+                        if (restaurantDetail.getId() == String.valueOf(id)) {
+                            restaurantDetailResponseMutableLiveData.postValue(restaurantDetail);
+                        } else {
+                            callRestaurantDetail(id);
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        Log.i(TAG, "RestaurantDetail - onError: " + t.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.i(TAG, "RestaurantDetail - onComplete");
+                    }
+                });
         return restaurantDetailResponseMutableLiveData;
+    }
+
+    public void insertRestaurants(Restaurant[] restaurants) {
+        db.restaurantDao().deleteAll().subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new DisposableCompletableObserver() {
+            @Override
+            public void onComplete() {
+                Log.i(TAG, "deleteAll - onComplete");
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+                Log.i(TAG, "deleteAll - onError: " + e.getMessage());
+            }
+        });
+        db.restaurantDao().insertAll(restaurants).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new DisposableCompletableObserver() {
+            @Override
+            public void onComplete() {
+                Log.i(TAG, "insertAll - onComplete");
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+                Log.i(TAG, "insertAll - onError: " + e.getMessage());
+            }
+        });
+    }
+
+    public void insertRestaurantDetail(RestaurantDetail detail) {
+        db.restaurantDetailDao().delete(detail).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new DisposableCompletableObserver() {
+            @Override
+            public void onComplete() {
+                Log.i(TAG, "delete - onComplete");
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+                Log.i(TAG, "delete - onError: " + e.getMessage());
+            }
+        });
+        db.restaurantDetailDao().insert(detail).subscribeOn(Schedulers.computation())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new DisposableCompletableObserver() {
+            @Override
+            public void onComplete() {
+                Log.i(TAG, "insert - onComplete");
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+                Log.i(TAG, "insert - onError: " + e.getMessage());
+            }
+        });
     }
 }
