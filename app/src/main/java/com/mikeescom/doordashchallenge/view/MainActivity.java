@@ -1,10 +1,11 @@
 package com.mikeescom.doordashchallenge.view;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.mikeescom.doordashchallenge.R;
+import com.mikeescom.doordashchallenge.utils.SharedPref;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -12,5 +13,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        SharedPref.init(this);
     }
 }

@@ -11,6 +11,9 @@ import com.mikeescom.doordashchallenge.data.db.AppDatabase;
 import com.mikeescom.doordashchallenge.data.models.Restaurant;
 import com.mikeescom.doordashchallenge.data.models.RestaurantDetail;
 import com.mikeescom.doordashchallenge.data.network.Service;
+import com.mikeescom.doordashchallenge.utils.SharedPref;
+
+import java.util.Calendar;
 
 import io.reactivex.MaybeObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -28,6 +31,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class Repository {
     private static final String TAG = Repository.class.getSimpleName();
     private static final String BASE_URL = "https://api.doordash.com/";
+    private static final long ONE_DAY_MILLS = 1000 * 60 * 60 * 24;
 
     private AppDatabase db;
     private Service service;
@@ -84,10 +88,10 @@ public class Repository {
                     @Override
                     public void onSuccess(@NonNull Restaurant[] restaurants) {
                         Log.i(TAG, "Restaurants - onNext");
-                        if (restaurants.length > 0) {
-                            restaurantsResponseMutableLiveData.postValue(restaurants);
-                        } else {
+                        if (restaurants.length == 0 || areRestaurantsNeedUpdate()) {
                             callRestaurants(lat, lng);
+                        } else {
+                            restaurantsResponseMutableLiveData.postValue(restaurants);
                         }
                     }
 
@@ -169,9 +173,10 @@ public class Repository {
         db.restaurantDao().insertAll(restaurants).subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new DisposableCompletableObserver() {
-            @Override
+                    @Override
             public void onComplete() {
                 Log.i(TAG, "insertAll - onComplete");
+                SharedPref.write(SharedPref.DB_UPDATE_TIME, Calendar.getInstance().getTimeInMillis());
             }
 
             @Override
@@ -208,5 +213,16 @@ public class Repository {
                 Log.i(TAG, "insert - onError: " + e.getMessage());
             }
         });
+    }
+
+    private boolean areRestaurantsNeedUpdate() {
+        long savedTime = SharedPref.read(SharedPref.DB_UPDATE_TIME, 0);
+        long currentTime = Calendar.getInstance().getTimeInMillis();
+        if (currentTime-savedTime > ONE_DAY_MILLS) {
+            Log.i(TAG, "Need to update DB. Updated " + (currentTime-savedTime) / 1000 + " seconds ago");
+            return true;
+        }
+        Log.i(TAG, "No need to update DB. Updated " + (currentTime-savedTime) / 1000 + " seconds ago");
+        return false;
     }
 }
