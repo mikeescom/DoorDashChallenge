@@ -17,6 +17,7 @@ import com.mikeescom.doordashchallenge.data.models.Restaurant;
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListAdapterHolder> {
     private Restaurant[] results;
     private Context context;
+    private OnClickItemListener listener;
 
     public ListAdapter(Context context) {
         this.context = context;
@@ -34,6 +35,8 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListAdapterHol
     @Override
     public void onBindViewHolder(@NonNull ListAdapterHolder holder, int position) {
         Restaurant restaurant = results[position];
+
+        holder.itemView.setOnClickListener(view -> listener.onClickItem(restaurant.getId()));
 
         Glide.with(context)
                 .load(restaurant.getCover_img_url())
@@ -60,6 +63,10 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListAdapterHol
         notifyDataSetChanged();
     }
 
+    public void setOnClickItemListener(OnClickItemListener listener) {
+        this.listener = listener;
+    }
+
     class ListAdapterHolder extends RecyclerView.ViewHolder {
         private ImageView foodImage;
         private TextView deliveryFee;
@@ -78,5 +85,9 @@ public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListAdapterHol
             rating = itemView.findViewById(R.id.rating);
             ratingNumbers = itemView.findViewById(R.id.ratings_number);
         }
+    }
+
+    interface OnClickItemListener {
+        void onClickItem(long id);
     }
 }

@@ -12,9 +12,6 @@ import com.mikeescom.doordashchallenge.data.models.Restaurant;
 import com.mikeescom.doordashchallenge.data.models.RestaurantDetail;
 import com.mikeescom.doordashchallenge.data.network.Service;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
 import io.reactivex.MaybeObserver;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
@@ -57,6 +54,7 @@ public class Repository {
     }
 
     private void callRestaurants(double lat, double lng) {
+        Log.i(TAG, "Restaurants - call to server");
         service.getRestaurants(lat, lng)
                 .enqueue(new Callback<Restaurant[]>() {
                     @Override
@@ -106,7 +104,8 @@ public class Repository {
         return restaurantsResponseMutableLiveData;
     }
 
-    private void callRestaurantDetail(int id) {
+    private void callRestaurantDetail(long id) {
+        Log.i(TAG, "RestaurantDetail - call to server");
         service.getRestaurantDetail(id)
                 .enqueue(new Callback<RestaurantDetail>() {
                     @Override
@@ -124,33 +123,30 @@ public class Repository {
                 });
     }
 
-    public LiveData<RestaurantDetail> getRestaurantDetailResponseLiveData(int id) {
+    public LiveData<RestaurantDetail> getRestaurantDetailResponseLiveData(long id) {
         db.restaurantDetailDao().getDetail(id).subscribeOn(Schedulers.computation())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<RestaurantDetail>() {
+                .subscribe(new MaybeObserver<RestaurantDetail>() {
                     @Override
-                    public void onSubscribe(Subscription s) {
+                    public void onSubscribe(@NonNull Disposable d) {
                         Log.i(TAG, "RestaurantDetail - onSubscribe");
                     }
 
                     @Override
-                    public void onNext(RestaurantDetail restaurantDetail) {
+                    public void onSuccess(@NonNull RestaurantDetail restaurantDetail) {
                         Log.i(TAG, "RestaurantDetail - onNext");
-                        if (restaurantDetail.getId() == String.valueOf(id)) {
-                            restaurantDetailResponseMutableLiveData.postValue(restaurantDetail);
-                        } else {
-                            callRestaurantDetail(id);
-                        }
+                        restaurantDetailResponseMutableLiveData.postValue(restaurantDetail);
                     }
 
                     @Override
-                    public void onError(Throwable t) {
-                        Log.i(TAG, "RestaurantDetail - onError: " + t.getMessage());
+                    public void onError(@NonNull Throwable e) {
+                        Log.i(TAG, "RestaurantDetail - onError: " + e.getMessage());
                     }
 
                     @Override
                     public void onComplete() {
                         Log.i(TAG, "RestaurantDetail - onComplete");
+                        callRestaurantDetail(id);
                     }
                 });
         return restaurantDetailResponseMutableLiveData;

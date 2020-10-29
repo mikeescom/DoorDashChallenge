@@ -13,5 +13,5 @@ public interface Service {
     Call<Restaurant[]> getRestaurants(@Query("lat") double lat, @Query("lng") double lng);
 
     @GET("/v2/restaurant/{id}/")
-    Call<RestaurantDetail> getRestaurantDetail(@Path("id") int id);
+    Call<RestaurantDetail> getRestaurantDetail(@Path("id") long id);
 }

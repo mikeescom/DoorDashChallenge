@@ -25,7 +25,7 @@ public class RestaurantDetail {
     private double phone_number;
     @ColumnInfo(name = "description")
     @SerializedName("description")
-    private long description;
+    private String description;
     @ColumnInfo(name = "header_img_url")
     @SerializedName("header_img_url")
     private String header_img_url;
@@ -65,11 +65,11 @@ public class RestaurantDetail {
         this.phone_number = phone_number;
     }
 
-    public long getDescription() {
+    public String getDescription() {
         return description;
     }
 
-    public void setDescription(long description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 

@@ -31,7 +31,7 @@ public class MainViewModel extends AndroidViewModel {
         return restaurantsResponseLiveData;
     }
 
-    public LiveData<RestaurantDetail> getRestaurantDetailResponseLiveData(int id) {
+    public LiveData<RestaurantDetail> getRestaurantDetailResponseLiveData(long id) {
         restaurantDetailResponseLiveData = repository.getRestaurantDetailResponseLiveData(id);
         return restaurantDetailResponseLiveData;
     }

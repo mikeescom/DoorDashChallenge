@@ -8,13 +8,12 @@ import androidx.room.Query;
 import com.mikeescom.doordashchallenge.data.models.RestaurantDetail;
 
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 
 @Dao
 public interface RestaurantDetailDao {
     @Query("SELECT * FROM restaurantdetail WHERE id = :id")
-    Flowable<RestaurantDetail> getDetail(int id);
+    Maybe<RestaurantDetail> getDetail(long id);
 
     @Query("SELECT Count(*) FROM restaurantdetail WHERE id = :id")
     Maybe<Long> getCount(int id);
