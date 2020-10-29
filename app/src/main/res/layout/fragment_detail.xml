@@ -14,60 +14,63 @@
         android:minHeight="50dp"
         android:minWidth="50dp" />
 
-    <RelativeLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="25dp"
-        android:layout_marginBottom="25dp"
-        android:orientation="vertical">
-        <TextView
-            android:id="@+id/name"
+        android:layout_height="match_parent">
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
+            android:layout_marginTop="25dp"
             android:layout_marginBottom="25dp"
-            android:gravity="center"
-            android:textSize="50sp"
-            tools:text="Title"/>
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginBottom="25dp"
+                android:gravity="center"
+                android:textSize="@dimen/title_size"
+                tools:text="Title"/>
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/image_header_card"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_below="@+id/name"
-            android:layout_marginBottom="25dp"
-            app:cardCornerRadius="15dp"
-            android:layout_gravity="center_horizontal"
-            android:elevation="10dp">
+            <androidx.cardview.widget.CardView
+                android:id="@+id/image_header_card"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@+id/name"
+                android:layout_marginBottom="25dp"
+                app:cardCornerRadius="15dp"
+                android:layout_gravity="center_horizontal"
+                android:elevation="10dp">
 
-            <ImageView
-                android:id="@+id/image_header"
-                android:layout_width="280dp"
-                android:layout_height="280dp"
-                tools:ignore="MissingConstraints" />
-        </androidx.cardview.widget.CardView>
+                <ImageView
+                    android:id="@+id/image_header"
+                    android:layout_width="@dimen/card_size"
+                    android:layout_height="@dimen/card_size"
+                    tools:ignore="MissingConstraints" />
+            </androidx.cardview.widget.CardView>
 
+            <TextView
+                android:id="@+id/description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/image_header_card"
+                android:layout_marginBottom="170dp"
+                android:gravity="center"
+                android:textSize="24sp"
+                tools:text="Description"/>
 
-        <TextView
-            android:id="@+id/description"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/image_header_card"
-            android:layout_marginBottom="170dp"
-            android:gravity="center"
-            android:textSize="24sp"
-            tools:text="Description"/>
-
-        <TextView
-            android:id="@+id/address"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_marginStart="25dp"
-            android:gravity="start"
-            android:textSize="17sp"
-            tools:text="Address"/>
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_marginStart="25dp"
+                android:gravity="start"
+                android:textSize="17sp"
+                tools:text="Address"/>
+        </RelativeLayout>
+    </ScrollView>
 
 </FrameLayout>
